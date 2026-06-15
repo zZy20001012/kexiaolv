@@ -1,0 +1,4 @@
+node_modules/
+deploy.cjs
+surge_input.txt
+*.bat

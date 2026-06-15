@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课消率计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            background: #f5f7fa;
+            color: #1a1a2e;
+            padding: 16px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0 16px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .header p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            padding-left: 10px;
+            border-left: 3px solid #4a6cf7;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .form-group label .unit {
+            font-weight: 400;
+            color: #999;
+            font-size: 12px;
+        }
+        .input-wrap {
+            position: relative;
+        }
+        .input-wrap input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #1a1a2e;
+            background: #fafafa;
+            transition: border-color 0.2s, background 0.2s;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+        .input-wrap input::-webkit-inner-spin-button,
+        .input-wrap input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .input-wrap input:focus {
+            border-color: #4a6cf7;
+            background: #fff;
+        }
+        .input-wrap input::placeholder {
+            color: #bbb;
+            font-size: 14px;
+        }
+        .sub-group {
+            display: flex;
+            gap: 10px;
+        }
+        .sub-group .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #4a6cf7, #6c63ff);
+            border-radius: 16px;
+            padding: 24px 20px;
+            margin-bottom: 14px;
+            text-align: center;
+            color: #fff;
+        }
+        .result-label {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+        .result-value {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .result-value .percent {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .result-detail {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 12px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .result-detail span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .result-detail .num {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            justify-content: center;
+        }
+        .status-tag {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .tag-excellent { background: rgba(255,255,255,0.2); color: #fff; }
+        .tag-good { background: rgba(255,255,255,0.2); color: #fff; }
+        .tag-warn { background: rgba(255,255,255,0.2); color: #fff; }
+        .tag-bad { background: rgba(255,255,255,0.2); color: #fff; }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .breakdown-item {
+            background: #f8f9fc;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+        .breakdown-item .label {
+            font-size: 12px;
+            color: #888;
+        }
+        .breakdown-item .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 2px;
+        }
+        .breakdown-item .value.blue { color: #4a6cf7; }
+        .breakdown-item .value.green { color: #22c55e; }
+        .breakdown-item .value.orange { color: #f59e0b; }
+        .breakdown-item .value.purple { color: #8b5cf6; }
+        .breakdown-item .value.red { color: #ef4444; }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-item .h-rate {
+            font-weight: 700;
+            color: #4a6cf7;
+        }
+        .history-item .h-date {
+            color: #999;
+            font-size: 12px;
+        }
+        .history-empty {
+            text-align: center;
+            color: #bbb;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+        .btn-reset {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fff;
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-reset:active {
+            background: #f5f5f5;
+        }
+
+        /* 补课名单管理 */
+        .student-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .student-input-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            background: #fafafa;
+        }
+        .student-input-row input:focus {
+            border-color: #4a6cf7;
+            background: #fff;
+        }
+        .student-input-row select {
+            padding: 10px 8px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            background: #fafafa;
+        }
+        .btn-add {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background: #4a6cf7;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-add:active {
+            opacity: 0.8;
+        }
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        .student-item .s-name {
+            font-weight: 500;
+        }
+        .student-item .s-type {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        .s-type-prev {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .s-type-this {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .s-type-both {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+        .student-item .s-del {
+            color: #ef4444;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .makeup-summary {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e0e0e0;
+            font-size: 13px;
+            color: #666;
+        }
+        .makeup-summary span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .makeup-summary .num {
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .makeup-summary .num.orange { color: #d97706; }
+        .makeup-summary .num.blue { color: #2563eb; }
+
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 14px;
+            background: #e8ecf4;
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #888;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-item.active {
+            background: #fff;
+            color: #4a6cf7;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0 10px;
+            font-size: 12px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>课消率计算器</h1>
+        <p>培训机构课时消耗统计工具</p>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-label">本周课消率</div>
+        <div class="result-value"><span id="rateValue">0.0</span><span class="percent">%</span></div>
+        <div class="result-detail">
+            <span>消课 <span class="num" id="numerator">0</span></span>
+            <span>应消 <span class="num" id="denominator">0</span></span>
+        </div>
+        <div class="status-bar" id="statusBar">
+            <span class="status-tag tag-excellent" id="statusTag">请输入数据</span>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active" data-tab="basic">快捷计算</div>
+        <div class="tab-item" data-tab="detail">完整录入</div>
+    </div>
+
+    <!-- Tab 1: 快捷计算 -->
+    <div class="tab-content" id="tab-basic">
+        <div class="card">
+            <div class="card-title">基础数据</div>
+            <div class="form-group">
+                <label>应到人数 <span class="unit">（人）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="b_attend" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>出勤人数 <span class="unit">（人）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="b_present" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="sub-group">
+                <div class="form-group">
+                    <label>非本月补课 <span class="unit">（课次）</span></label>
+                    <div class="input-wrap">
+                        <input type="number" id="b_prev" placeholder="0" min="0" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>本月补课 <span class="unit">（课次）</span></label>
+                    <div class="input-wrap">
+                        <input type="number" id="b_this" placeholder="0" min="0" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>加强课时 <span class="unit">（课次，选填）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="b_extra" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+        </div>
+        <button class="btn-reset" onclick="resetBasic()">清空数据</button>
+    </div>
+
+    <!-- Tab 2: 完整录入（含补课名单） -->
+    <div class="tab-content" id="tab-detail" style="display:none">
+        <div class="card">
+            <div class="card-title">出勤数据</div>
+            <div class="form-group">
+                <label>应到人数 <span class="unit">（人）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="d_attend" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>实际出勤人数 <span class="unit">（人）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="d_present" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>加强课时 <span class="unit">（课次，选填）</span></label>
+                <div class="input-wrap">
+                    <input type="number" id="d_extra" placeholder="0" min="0" inputmode="numeric">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">补课名单管理</div>
+            <div class="student-input-row">
+                <input type="text" id="studentName" placeholder="输入学生姓名" maxlength="10">
+                <select id="studentType">
+                    <option value="prev">非本月补课</option>
+                    <option value="this">本月补课</option>
+                </select>
+                <button class="btn-add" onclick="addStudent()">添加</button>
+            </div>
+            <div id="studentList">
+                <div class="history-empty">暂无补课记录</div>
+            </div>
+            <div class="makeup-summary" id="makeupSummary" style="display:none">
+                <span>非本月：<span class="num orange" id="prevCount">0</span> 课次</span>
+                <span>本月：<span class="num blue" id="thisCount">0</span> 课次</span>
+            </div>
+        </div>
+        <button class="btn-reset" onclick="resetDetail()">清空所有数据</button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">数据明细</div>
+        <div class="breakdown">
+            <div class="breakdown-item">
+                <div class="label">分子（消课）</div>
+                <div class="value blue" id="b_numerator">0</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="label">分母（应消）</div>
+                <div class="value purple" id="b_denominator">0</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="label">出勤</div>
+                <div class="value green" id="b_present_val">0</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="label">非本月补课</div>
+                <div class="value orange" id="b_prev_val">0</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="label">本月补课</div>
+                <div class="value orange" id="b_this_val">0</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="label">加强</div>
+                <div class="value red" id="b_extra_val">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">历史记录</div>
+        <div class="history-list" id="historyList">
+            <div class="history-empty">暂无记录</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        课消率 = (出勤 + 非本月补课 + 本月补课) ÷ (应到 + 非本月补课 + 加强)
+    </div>
+</div>
+
+<script>
+// ========== 数据 ==========
+let students = [];
+const MAX_HISTORY = 20;
+const STORAGE_KEY = 'lesson_rate_history';
+
+// ========== DOM refs ==========
+const $ = id => document.getElementById(id);
+
+// ========== 计算核心 ==========
+function calcRate(present, attend, prevMakeup, thisMakeup, extra) {
+    const num = present + prevMakeup + thisMakeup;
+    const den = attend + prevMakeup + extra;
+    if (den === 0) return { rate: 0, num: 0, den: 0 };
+    return { rate: (num / den) * 100, num, den };
+}
+
+function getBasicInputs() {
+    return {
+        present: parseInt($('b_present').value) || 0,
+        attend: parseInt($('b_attend').value) || 0,
+        prev: parseInt($('b_prev').value) || 0,
+        this: parseInt($('b_this').value) || 0,
+        extra: parseInt($('b_extra').value) || 0,
+    };
+}
+
+function getDetailInputs() {
+    const prevCount = students.filter(s => s.type === 'prev').length;
+    const thisCount = students.filter(s => s.type === 'this').length;
+    return {
+        present: parseInt($('d_present').value) || 0,
+        attend: parseInt($('d_attend').value) || 0,
+        prev: prevCount,
+        this: thisCount,
+        extra: parseInt($('d_extra').value) || 0,
+    };
+}
+
+function getCurrentInputs() {
+    const active = document.querySelector('.tab-item.active');
+    if (active && active.dataset.tab === 'detail') {
+        return getDetailInputs();
+    }
+    return getBasicInputs();
+}
+
+// ========== 更新UI ==========
+function updateAll() {
+    const d = getCurrentInputs();
+    const result = calcRate(d.present, d.attend, d.prev, d.this, d.extra);
+
+    // 结果卡片
+    $('rateValue').textContent = result.rate.toFixed(1);
+    $('numerator').textContent = result.num;
+    $('denominator').textContent = result.den;
+
+    // 状态标签
+    const tag = $('statusTag');
+    if (result.den === 0) {
+        tag.textContent = '请输入数据';
+    } else if (result.rate >= 95) {
+        tag.textContent = '优秀';
+    } else if (result.rate >= 85) {
+        tag.textContent = '良好';
+    } else if (result.rate >= 70) {
+        tag.textContent = '一般';
+    } else {
+        tag.textContent = '偏低';
+    }
+
+    // 明细
+    $('b_present_val').textContent = d.present;
+    $('b_prev_val').textContent = d.prev;
+    $('b_this_val').textContent = d.this;
+    $('b_extra_val').textContent = d.extra;
+    $('b_numerator').textContent = result.num;
+    $('b_denominator').textContent = result.den;
+}
+
+// ========== 输入事件绑定（basic tab） ==========
+['b_attend','b_present','b_prev','b_this','b_extra'].forEach(id => {
+    $(id).addEventListener('input', updateAll);
+});
+
+// ========== 输入事件绑定（detail tab） ==========
+['d_attend','d_present','d_extra'].forEach(id => {
+    $(id).addEventListener('input', updateAll);
+});
+
+// ========== Tab切换 ==========
+document.querySelectorAll('.tab-item').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        $(`tab-${this.dataset.tab}`).style.display = 'block';
+        // 同步数据
+        if (this.dataset.tab === 'detail') {
+            syncToDetail();
+        } else {
+            syncToBasic();
+        }
+        updateAll();
+    });
+});
+
+function syncToDetail() {
+    const b = getBasicInputs();
+    if ($('d_attend').value === '' || $('d_attend').value === '0') $('d_attend').value = b.attend || '';
+    if ($('d_present').value === '' || $('d_present').value === '0') $('d_present').value = b.present || '';
+    if ($('d_extra').value === '' || $('d_extra').value === '0') $('d_extra').value = b.extra || '';
+}
+
+function syncToBasic() {
+    const d = getDetailInputs();
+    if ($('b_attend').value === '' || $('b_attend').value === '0') $('b_attend').value = d.attend || '';
+    if ($('b_present').value === '' || $('b_present').value === '0') $('b_present').value = d.present || '';
+    if ($('b_extra').value === '' || $('b_extra').value === '0') $('b_extra').value = d.extra || '';
+}
+
+// ========== 补课名单管理 ==========
+function addStudent() {
+    const name = $('studentName').value.trim();
+    if (!name) {
+        $('studentName').focus();
+        return;
+    }
+    students.push({ name, type: $('studentType').value });
+    $('studentName').value = '';
+    $('studentName').focus();
+    renderStudents();
+    updateAll();
+}
+
+function removeStudent(idx) {
+    students.splice(idx, 1);
+    renderStudents();
+    updateAll();
+}
+
+function renderStudents() {
+    const list = $('studentList');
+    const summary = $('makeupSummary');
+    if (students.length === 0) {
+        list.innerHTML = '<div class="history-empty">暂无补课记录</div>';
+        summary.style.display = 'none';
+        return;
+    }
+    let html = '';
+    let prev = 0, thisM = 0;
+    students.forEach((s, i) => {
+        if (s.type === 'prev') prev++;
+        else thisM++;
+        const typeLabel = s.type === 'prev' ? '非本月' : '本月';
+        const typeCls = s.type === 'prev' ? 's-type-prev' : 's-type-this';
+        html += `<div class="student-item">
+            <div>
+                <span class="s-name">${i+1}. ${s.name}</span>
+                <span class="s-type ${typeCls}">${typeLabel}</span>
+            </div>
+            <span class="s-del" onclick="removeStudent(${i})">✕</span>
+        </div>`;
+    });
+    list.innerHTML = html;
+    summary.style.display = 'flex';
+    $('prevCount').textContent = prev;
+    $('thisCount').textContent = thisM;
+}
+
+// ========== 清除 ==========
+function resetBasic() {
+    ['b_attend','b_present','b_prev','b_this','b_extra'].forEach(id => $(id).value = '');
+    updateAll();
+}
+
+function resetDetail() {
+    ['d_attend','d_present','d_extra'].forEach(id => $(id).value = '');
+    students = [];
+    renderStudents();
+    updateAll();
+}
+
+// ========== 历史记录 ==========
+function saveHistory() {
+    const d = getCurrentInputs();
+    const result = calcRate(d.present, d.attend, d.prev, d.this, d.extra);
+    if (result.den === 0) return;
+    const records = loadHistory();
+    const now = new Date();
+    const dateStr = `${now.getMonth()+1}月${now.getDate()}日`;
+    records.unshift({
+        date: dateStr,
+        time: now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        rate: result.rate,
+        num: result.num,
+        den: result.den,
+        detail: d,
+    });
+    if (records.length > MAX_HISTORY) records.length = MAX_HISTORY;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    renderHistory();
+}
+
+function loadHistory() {
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch { return []; }
+}
+
+function renderHistory() {
+    const records = loadHistory();
+    const list = $('historyList');
+    if (records.length === 0) {
+        list.innerHTML = '<div class="history-empty">暂无记录</div>';
+        return;
+    }
+    list.innerHTML = records.map(r =>
+        `<div class="history-item">
+            <span>课消率 <span class="h-rate">${r.rate.toFixed(1)}%</span>
+                <span style="color:#999;font-size:12px;margin-left:4px">
+                    ${r.num}/${r.den}
+                </span>
+            </span>
+            <span class="h-date">${r.date} ${r.time}</span>
+        </div>`
+    ).join('');
+}
+
+// ========== 自动保存（切后台/关页面前保存） ==========
+window.addEventListener('beforeunload', saveHistory);
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveHistory();
+});
+
+// ========== 初始化 ==========
+renderHistory();
+updateAll();
+</script>
+</body>
+</html>
